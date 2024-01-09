@@ -186,6 +186,7 @@ bool Request::get(const char * url, std::map<std::string, std::string> *query){
 				it++;
 				if ( it != query->end()){
 					path[length++] = '&';
+				} else {
 					path[length++] = 0;
 				}
 			}

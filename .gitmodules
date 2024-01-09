@@ -16,3 +16,6 @@
 [submodule "lib/FreeRTOS-Kernel"]
 	path = lib/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
+[submodule "blu/pico_fota_bootloader"]
+	path = blu/pico_fota_bootloader
+	url = https://github.com/JZimnol/pico_fota_bootloader

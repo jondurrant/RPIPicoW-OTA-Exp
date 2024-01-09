@@ -20,6 +20,7 @@ target_link_libraries(${NAME}
      json_maker
      tiny_json
      md5
+     pico_fota_bootloader_lib
 	)
 	
 target_include_directories(${NAME} PRIVATE
@@ -50,3 +51,11 @@ target_compile_definitions(${NAME} PRIVATE
     PICO_DEFAULT_UART_RX_PIN=16
     PICO_DEFAULT_UART_TX_PIN=17
 )
+
+target_link_options(${NAME} PRIVATE 
+    "-L${CMAKE_CURRENT_SOURCE_DIR}/../pico_fota_bootloader/linker_common"
+    )
+    
+pico_set_linker_script(${NAME} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../pico_fota_bootloader/linker_common/application.ld
+    )

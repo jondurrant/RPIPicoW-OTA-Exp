@@ -93,8 +93,9 @@ void runTimeStats(){
 }
 
 
-char buf[2048];
-size_t bufL = 2048;
+char *buf = NULL;
+const size_t BUFLEN = 11000;
+const size_t SEGSIZE = 10240;
 
 void main_task(void* params){
 
@@ -129,20 +130,56 @@ void main_task(void* params){
   printf("IP ADDRESS: %s\n", ipStr);
 
 
-  Request req(buf, bufL);
-  req.get("http://vmu22a.local.jondurrant.com:5000/srv");
-  printf("Req Resp: %d : Len %u\n", req.getStatusCode(), req.getPayloadLen());
+  MD5 fullMD;
+  unsigned char md[16];
+  char segNum[10];
+  char segSize[10];
+  sprintf(segSize, "%d", SEGSIZE);
 
-  	unsigned char md[16];
-	MD5::hash( (const void *) req.getPayload(),  req.getPayloadLen(),  md );
-	for (int i=0; i < 16; i++){
-		if (md[i] < 0x10){
+  buf = (char *)malloc(BUFLEN);
+  int seg = 0;
+  int rec = 1;
+
+  while (rec > 0){
+
+	  Request req(buf, BUFLEN);
+	  std::map<std::string, std::string> query;
+	  query["segSize"] = segSize;
+	  sprintf(segNum, "%d", seg);
+	  query["segNum"] = segNum;
+	  if (!req.get("http://vmu22a.local.jondurrant.com:5000/blu", &query)){
+		  break;
+	  }
+	  printf("Seg %d Req Resp: %d : Len %u \t", seg, req.getStatusCode(), req.getPayloadLen());
+	  rec = req.getPayloadLen();
+
+	  fullMD.update((const void *) req.getPayload(),  req.getPayloadLen());
+
+	  MD5::hash( (const void *) req.getPayload(),  req.getPayloadLen(),  md );
+	  for (int i=0; i < 16; i++){
+		  if (md[i] < 0x10){
 			printf("0%X", md[i]);
-		} else {
+		  } else {
 			printf("%X", md[i]);
-		}
-	}
-	printf("\n");
+		  }
+	  }
+	  printf("\n");
+	  seg++;
+  }
+
+  free(buf);
+
+
+  printf("Full MD5: ");
+  fullMD.finalize( md );
+  for (int i=0; i < 16; i++){
+	  if (md[i] < 0x10){
+		printf("0%X", md[i]);
+	  } else {
+		printf("%X", md[i]);
+	  }
+  }
+  printf("\n");
 
   while (true){
 
@@ -171,7 +208,7 @@ void main_task(void* params){
 void vLaunch(void) {
   TaskHandle_t task;
 
-  xTaskCreate(main_task, "MainThread", 2048, NULL, TASK_PRIORITY, &task);
+  xTaskCreate(main_task, "MainThread", 9000, NULL, TASK_PRIORITY, &task);
 
   /* Start the tasks and timer running. */
   vTaskStartScheduler();
