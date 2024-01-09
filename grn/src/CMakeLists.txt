@@ -1,6 +1,6 @@
-include(files.cmake)
+include(../../blu/src/files.cmake)
 add_executable(${NAME}
-   ${SRC_FILES}
+        ${SRC_FILES}
 )
 
 # Pull in our pico_stdlib which pulls in commonly used features
@@ -45,9 +45,9 @@ pico_enable_stdio_uart(${NAME} 1)
 target_compile_definitions(${NAME} PRIVATE
     PICO_DEFAULT_UART_RX_PIN=16
     PICO_DEFAULT_UART_TX_PIN=17
-    RELEASE="BLU"
-    OTA_URL="http://vmu22a.local.jondurrant.com:5000/grn"
-    LED_GP=15
+    RELEASE="GRN"
+    OTA_URL="http://vmu22a.local.jondurrant.com:5000/blu"
+    LED_GP=14
 )
 
 target_link_options(${NAME} PRIVATE 

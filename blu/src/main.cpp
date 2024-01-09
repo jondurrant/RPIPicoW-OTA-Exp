@@ -192,6 +192,7 @@ void blinkDelay(uint8_t led){
 
 void main_task(void* params){
 
+  printf("RELEASE: %s\n", RELEASE);
   printf("Main task started\n");
 
   if (pfb_is_after_firmware_update()){
@@ -230,9 +231,10 @@ void main_task(void* params){
 
 
 
-  blinkDelay(15);
+  blinkDelay(LED_GP);
 
-  otaUpdate("http://vmu22a.local.jondurrant.com:5000/blu");
+  //otaUpdate("http://vmu22a.local.jondurrant.com:5000/blu");
+  otaUpdate(OTA_URL);
 
 
   while (true){

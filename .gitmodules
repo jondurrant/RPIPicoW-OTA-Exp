@@ -19,3 +19,6 @@
 [submodule "blu/pico_fota_bootloader"]
 	path = blu/pico_fota_bootloader
 	url = https://github.com/JZimnol/pico_fota_bootloader
+[submodule "grn/pico_fota_bootloader"]
+	path = grn/pico_fota_bootloader
+	url = https://github.com/JZimnol/pico_fota_bootloader
