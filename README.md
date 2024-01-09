@@ -1,5 +1,5 @@
 # RPIPicoW-OTA-Exp
-OTA (Over the Air) Update Experiment on the Raspberry Pi Pico-W
+OTA (Over the Air) Update Experiment on the Raspberry Pi Pico-W for my YouTube channel [DrJonEA](https://youtube.com/@DrJonEA)
 
 Making use of [Jakub Zimnol](https://github.com/JZimnol) excellent [Firmware Over the Air](https://github.com/JZimnol/pico_fota_bootloader) bootloader to firmware upgrade my Pico-W.
 
