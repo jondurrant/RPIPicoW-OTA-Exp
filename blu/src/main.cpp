@@ -22,6 +22,9 @@
 #include "Request.h"
 #include <md5.h>
 
+extern "C"{
+#include "pico_fota_bootloader.h"
+}
 
 
 //Check these definitions where added from the makefile
@@ -97,9 +100,105 @@ char *buf = NULL;
 const size_t BUFLEN = 11000;
 const size_t SEGSIZE = 10240;
 
+
+void otaUpdate(const char * url){
+	MD5 fullMD;
+	unsigned char md[16];
+	char segNum[10];
+	char segSize[10];
+	sprintf(segSize, "%d", SEGSIZE);
+
+	buf = (char *)malloc(BUFLEN);
+	int seg = 0;
+	int rec = 1;
+
+	pfb_initialize_download_slot();
+
+	while (rec > 0){
+
+	  Request req(buf, BUFLEN);
+	  std::map<std::string, std::string> query;
+	  query["segSize"] = segSize;
+	  sprintf(segNum, "%d", seg);
+	  query["segNum"] = segNum;
+	  if (!req.get(url, &query)){
+		  break;
+	  }
+	  printf("Seg %d Req Resp: %d : Len %u \t", seg, req.getStatusCode(), req.getPayloadLen());
+	  rec = req.getPayloadLen();
+
+	  fullMD.update((const void *) req.getPayload(),  req.getPayloadLen());
+
+	  MD5::hash( (const void *) req.getPayload(),  req.getPayloadLen(),  md );
+	  for (int i=0; i < 16; i++){
+		  if (md[i] < 0x10){
+			printf("0%X", md[i]);
+		  } else {
+			printf("%X", md[i]);
+		  }
+	  }
+	  printf("\n");
+
+
+	  pfb_write_to_flash_aligned_256_bytes(
+			  ( uint8_t *) req.getPayload(),
+			  seg * SEGSIZE,
+			  req.getPayloadLen());
+	  seg++;
+	}
+
+	free(buf);
+
+
+	printf("Full MD5: ");
+	fullMD.finalize( md );
+	for (int i=0; i < 16; i++){
+	  if (md[i] < 0x10){
+		printf("0%X", md[i]);
+	  } else {
+		printf("%X", md[i]);
+	  }
+	}
+	printf("\n");
+
+
+	pfb_mark_download_slot_as_valid();
+	pfb_perform_update();
+}
+
+
+void blinkDelay(uint8_t led){
+	gpio_init(led);
+	gpio_set_dir(led, GPIO_OUT);
+
+	for (int i=0; i < 20; i++){
+		gpio_put(led, 1);
+		vTaskDelay(500);
+		gpio_put(led, 0);
+		vTaskDelay(500);
+	}
+
+	for (int i=0; i < 3; i++){
+		gpio_put(led, 1);
+		vTaskDelay(150);
+		gpio_put(led, 0);
+		vTaskDelay(150);
+	}
+
+}
+
+
+
+
 void main_task(void* params){
 
   printf("Main task started\n");
+
+  if (pfb_is_after_firmware_update()){
+	  printf("RUNNING ON NEW FIRMWARE\n");
+  } else {
+	  printf("Old firmware\n");
+  }
 
   if (WifiHelper::init()){
     printf("Wifi Controller Initialised\n");
@@ -130,56 +229,11 @@ void main_task(void* params){
   printf("IP ADDRESS: %s\n", ipStr);
 
 
-  MD5 fullMD;
-  unsigned char md[16];
-  char segNum[10];
-  char segSize[10];
-  sprintf(segSize, "%d", SEGSIZE);
 
-  buf = (char *)malloc(BUFLEN);
-  int seg = 0;
-  int rec = 1;
+  blinkDelay(15);
 
-  while (rec > 0){
+  otaUpdate("http://vmu22a.local.jondurrant.com:5000/blu");
 
-	  Request req(buf, BUFLEN);
-	  std::map<std::string, std::string> query;
-	  query["segSize"] = segSize;
-	  sprintf(segNum, "%d", seg);
-	  query["segNum"] = segNum;
-	  if (!req.get("http://vmu22a.local.jondurrant.com:5000/blu", &query)){
-		  break;
-	  }
-	  printf("Seg %d Req Resp: %d : Len %u \t", seg, req.getStatusCode(), req.getPayloadLen());
-	  rec = req.getPayloadLen();
-
-	  fullMD.update((const void *) req.getPayload(),  req.getPayloadLen());
-
-	  MD5::hash( (const void *) req.getPayload(),  req.getPayloadLen(),  md );
-	  for (int i=0; i < 16; i++){
-		  if (md[i] < 0x10){
-			printf("0%X", md[i]);
-		  } else {
-			printf("%X", md[i]);
-		  }
-	  }
-	  printf("\n");
-	  seg++;
-  }
-
-  free(buf);
-
-
-  printf("Full MD5: ");
-  fullMD.finalize( md );
-  for (int i=0; i < 16; i++){
-	  if (md[i] < 0x10){
-		printf("0%X", md[i]);
-	  } else {
-		printf("%X", md[i]);
-	  }
-  }
-  printf("\n");
 
   while (true){
 

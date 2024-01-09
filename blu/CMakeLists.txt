@@ -19,7 +19,7 @@ pico_sdk_init()
 include(lwip_import.cmake)
 
 SET(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_LIST_DIR}/../lib/FreeRTOS-Kernel" CACHE STRING "Course Common Lib")
-SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local Config")
+SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../port/FreeRTOS-Kernel" CACHE STRING "Local Config")
 include(${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel/freertos_config.cmake)
 include_directories("${FREERTOS_CONFIG_FILE_DIRECTORY}") 
 include(FreeRTOS_Kernel_import.cmake)
@@ -40,6 +40,7 @@ include(tiny-json.cmake)
 set(MD5_PATH "${CMAKE_CURRENT_LIST_DIR}/../lib/md5")
 include(md5.cmake)
 
+add_subdirectory(pico_fota_bootloader)
 
 add_subdirectory(src)
 
